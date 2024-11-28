@@ -8,22 +8,22 @@ let state = {
 function showBoard() {
   const boardElement = document.querySelector(".board");
   boardElement.innerHTML = "";
-
+  
+  const boardContent = ["div", { class: "board-inner" }];
+  
   state.board.forEach((row) => {
     row.forEach((cell, colIndex) => {
-      const field = elt("div", {
-        class: "field",
-        "data-col": colIndex,
-      });
+      const fieldContent = ["div", { class: "field", "data-col": colIndex }];
       if (cell) {
-        const piece = elt("div", {
-          class: `piece ${cell === "r" ? "red" : "blue"}`,
-        });
-        field.appendChild(piece);
+        fieldContent.push(["div", { 
+          class: `piece ${cell === "r" ? "red" : "blue"}`
+        }]);
       }
-      boardElement.appendChild(field);
+      boardContent.push(fieldContent);
     });
   });
+  
+  renderSJDON(boardContent, boardElement);
 
   document.querySelector(".game-info").textContent = `${
     state.currentPlayer === "r" ? "Rot" : "Blau"
@@ -112,14 +112,25 @@ function resetGame() {
 }
 
 async function saveGame() {
+  // Try to save to server first
   try {
     await fetch("http://localhost:3000/api/data/game?api-key=c4game", {
       method: 'PUT',
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify(state)
     });
+    document.querySelector("#saveServer").disabled = false;
   } catch (e) {
-    console.error("Failed to save game:", e);
+    console.error("Failed to save game to server:", e);
+    document.querySelector("#saveServer").disabled = true;
+  }
+}
+
+function saveGameLocal() {
+  try {
+    localStorage.setItem('connect4game', JSON.stringify(state));
+  } catch (e) {
+    console.error("Failed to save game to localStorage:", e);
   }
 }
 
@@ -129,13 +140,29 @@ async function loadGame() {
     const data = await response.json();
     state = data;
     showBoard();
+    document.querySelector("#loadServer").disabled = false;
   } catch (e) {
-    console.error("Failed to load game:", e);
+    console.error("Failed to load game from server:", e);
+    document.querySelector("#loadServer").disabled = true;
+  }
+}
+
+function loadGameLocal() {
+  try {
+    const savedState = localStorage.getItem('connect4game');
+    if (savedState) {
+      state = JSON.parse(savedState);
+      showBoard();
+    }
+  } catch (e) {
+    console.error("Failed to load game from localStorage:", e);
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelector(".board").addEventListener("click", (e) => {
+  const boardElement = document.querySelector(".board");
+  
+  boardElement.addEventListener("click", (e) => {
     const field = e.target.closest(".field");
     if (field) {
       const col = field.getAttribute("data-col");
@@ -146,5 +173,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#newGame").addEventListener("click", resetGame);
   document.querySelector("#saveGame").addEventListener("click", saveGame);
   document.querySelector("#loadGame").addEventListener("click", loadGame);
+  document.querySelector("#saveLocal").addEventListener("click", saveGameLocal);
+  document.querySelector("#loadLocal").addEventListener("click", loadGameLocal);
+  
+  // Test server connectivity
+  fetch("http://localhost:3000/api/data/game?api-key=c4game")
+    .catch(() => {
+      document.querySelector("#saveGame").disabled = true;
+      document.querySelector("#loadGame").disabled = true;
+    });
+    
   showBoard();
 });

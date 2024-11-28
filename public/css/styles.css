@@ -10,6 +10,13 @@ div {
   flex-wrap: wrap;
 }
 
+.board-inner {
+  width: 100%;
+  outline: 1px solid black;
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .board .field {
   border: 1px solid black;
   width: 12vw;
@@ -43,6 +50,10 @@ div {
 .game-controls {
   text-align: center;
   margin: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .game-controls button {
