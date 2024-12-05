@@ -1,29 +1,30 @@
-let state = {
+import { render, useSJDON } from "./lib/suiweb-1.1.js";
+import { App, Board, Field } from "./components.js";
+
+window.state = {
   board: Array(6)
     .fill("")
     .map(() => Array(7).fill("")),
   currentPlayer: "r",
+  gameOver: false,
 };
 
+window.stateSeq = [];
+
+function setInList(list, idx, val) {
+  return [...list.slice(0, idx), val, ...list.slice(idx + 1)];
+}
+
+function setInObj(obj, key, val) {
+  return { ...obj, [key]: val };
+}
+
+useSJDON(Field, Board, App);
+
 function showBoard() {
-  const boardElement = document.querySelector(".board");
-  boardElement.innerHTML = "";
-  
-  const boardContent = ["div", { class: "board-inner" }];
-  
-  state.board.forEach((row) => {
-    row.forEach((cell, colIndex) => {
-      const fieldContent = ["div", { class: "field", "data-col": colIndex }];
-      if (cell) {
-        fieldContent.push(["div", { 
-          class: `piece ${cell === "r" ? "red" : "blue"}`
-        }]);
-      }
-      boardContent.push(fieldContent);
-    });
-  });
-  
-  renderSJDON(boardContent, boardElement);
+  const app = document.querySelector(".app");
+  app.innerHTML = "";
+  render([App], app);
 
   document.querySelector(".game-info").textContent = `${
     state.currentPlayer === "r" ? "Rot" : "Blau"
@@ -40,84 +41,124 @@ function getLowestEmptyRow(col) {
 }
 
 function connect4Winner(player, board) {
-    // Check horizontal
-    for (let row = 0; row < 6; row++) {
-        for (let col = 0; col < 4; col++) {
-            if (board[row][col] === player &&
-                board[row][col + 1] === player &&
-                board[row][col + 2] === player &&
-                board[row][col + 3] === player) {
-                return true;
-            }
-        }
+  // Check horizontal
+  for (let row = 0; row < 6; row++) {
+    for (let col = 0; col < 4; col++) {
+      if (
+        board[row][col] === player &&
+        board[row][col + 1] === player &&
+        board[row][col + 2] === player &&
+        board[row][col + 3] === player
+      ) {
+        return true;
+      }
     }
+  }
 
-    // Check vertical
-    for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 7; col++) {
-            if (board[row][col] === player &&
-                board[row + 1][col] === player &&
-                board[row + 2][col] === player &&
-                board[row + 3][col] === player) {
-                return true;
-            }
-        }
+  // Check vertical
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 7; col++) {
+      if (
+        board[row][col] === player &&
+        board[row + 1][col] === player &&
+        board[row + 2][col] === player &&
+        board[row + 3][col] === player
+      ) {
+        return true;
+      }
     }
+  }
 
-    // Check diagonals
-    for (let row = 0; row < 6; row++) {
-        for (let col = 0; col < 4; col++) {
-            // Diagonal down-right
-            if (row < 3 && 
-                board[row][col] === player &&
-                board[row + 1][col + 1] === player &&
-                board[row + 2][col + 2] === player &&
-                board[row + 3][col + 3] === player) {
-                return true;
-            }
-            // Diagonal up-right (fixed)
-            if (row > 2 && 
-                board[row][col] === player &&
-                board[row - 1][col + 1] === player &&
-                board[row - 2][col + 2] === player &&
-                board[row - 3][col + 3] === player) {
-                return true;
-            }
-        }
+  // Check diagonals
+  for (let row = 0; row < 6; row++) {
+    for (let col = 0; col < 4; col++) {
+      // Diagonal down-right
+      if (
+        row < 3 &&
+        board[row][col] === player &&
+        board[row + 1][col + 1] === player &&
+        board[row + 2][col + 2] === player &&
+        board[row + 3][col + 3] === player
+      ) {
+        return true;
+      }
+      // Diagonal up-right (fixed)
+      if (
+        row > 2 &&
+        board[row][col] === player &&
+        board[row - 1][col + 1] === player &&
+        board[row - 2][col + 2] === player &&
+        board[row - 3][col + 3] === player
+      ) {
+        return true;
+      }
     }
-    return false;
+  }
+  return false;
 }
 
 function makeMove(col) {
+  if (state.gameOver) {
+    resetGame();
+    return;
+  }
+
   const row = getLowestEmptyRow(col);
   if (row !== -1) {
-    state.board[row][col] = state.currentPlayer;
-    if (connect4Winner(state.currentPlayer, state.board)) {
+    stateSeq.push({ ...state, board: [...state.board.map((row) => [...row])] });
+
+    const newBoard = setInList(
+      state.board,
+      row,
+      setInList(state.board[row], col, state.currentPlayer)
+    );
+
+    state = setInObj(
+      setInObj(state, "board", newBoard),
+      "currentPlayer",
+      state.currentPlayer === "r" ? "b" : "r"
+    );
+
+    if (connect4Winner(state.currentPlayer === "r" ? "b" : "r", state.board)) {
+      state.gameOver = true;
       showBoard();
-      document.querySelector(".game-info").textContent = 
-        `${state.currentPlayer === "r" ? "Rot" : "Blau"} hat gewonnen!`;
+      document.querySelector(".game-info").textContent = `${
+        state.currentPlayer === "b" ? "Rot" : "Blau"
+      } hat gewonnen! Klicken zum Neustart`;
       return;
     }
-    state.currentPlayer = state.currentPlayer === "r" ? "b" : "r";
+    showBoard();
+  }
+}
+
+function undo() {
+  if (stateSeq.length > 0) {
+    state = stateSeq.pop();
     showBoard();
   }
 }
 
 function resetGame() {
-  state.board = Array(6)
-    .fill("")
-    .map(() => Array(7).fill(""));
-  state.currentPlayer = "r";
+  window.stateSeq = [];
+
+  state = {
+    board: Array(6)
+      .fill("")
+      .map(() => Array(7).fill("")),
+    currentPlayer: "r",
+    gameOver: false,
+  };
+
   showBoard();
 }
 
 async function saveGame() {
-  // Try to save to server first
   try {
-    await fetch("http://localhost:3000/api/data/game?api-key=c4game", {
-      method: 'PUT',
-      headers: { 'Content-type': 'application/json' },
-      body: JSON.stringify(state)
+    await fetch("/api/data/game?api-key=c4game", {
+      method: "PUT",
+      headers: { "Content-type": "application/json" },
+      body: JSON.stringify(state),
+      credentials: "same-origin",
     });
     document.querySelector("#saveServer").disabled = false;
   } catch (e) {
@@ -128,7 +169,7 @@ async function saveGame() {
 
 function saveGameLocal() {
   try {
-    localStorage.setItem('connect4game', JSON.stringify(state));
+    localStorage.setItem("connect4game", JSON.stringify(state));
   } catch (e) {
     console.error("Failed to save game to localStorage:", e);
   }
@@ -136,7 +177,9 @@ function saveGameLocal() {
 
 async function loadGame() {
   try {
-    const response = await fetch("http://localhost:3000/api/data/game?api-key=c4game");
+    const response = await fetch("/api/data/game?api-key=c4game", {
+      credentials: "same-origin",
+    });
     const data = await response.json();
     state = data;
     showBoard();
@@ -149,7 +192,7 @@ async function loadGame() {
 
 function loadGameLocal() {
   try {
-    const savedState = localStorage.getItem('connect4game');
+    const savedState = localStorage.getItem("connect4game");
     if (savedState) {
       state = JSON.parse(savedState);
       showBoard();
@@ -159,29 +202,25 @@ function loadGameLocal() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const boardElement = document.querySelector(".board");
-  
-  boardElement.addEventListener("click", (e) => {
-    const field = e.target.closest(".field");
-    if (field) {
-      const col = field.getAttribute("data-col");
-      makeMove(parseInt(col));
-    }
-  });
+// Make makeMove available globally for components
+window.makeMove = makeMove;
 
+document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#newGame").addEventListener("click", resetGame);
-  document.querySelector("#saveGame").addEventListener("click", saveGame);
-  document.querySelector("#loadGame").addEventListener("click", loadGame);
+  document.querySelector("#undo").addEventListener("click", undo);
   document.querySelector("#saveLocal").addEventListener("click", saveGameLocal);
   document.querySelector("#loadLocal").addEventListener("click", loadGameLocal);
-  
+  document.querySelector("#saveGame").addEventListener("click", saveGame);
+  document.querySelector("#loadGame").addEventListener("click", loadGame);
+
+  // Initial render
+  resetGame();
+
   // Test server connectivity
-  fetch("http://localhost:3000/api/data/game?api-key=c4game")
-    .catch(() => {
-      document.querySelector("#saveGame").disabled = true;
-      document.querySelector("#loadGame").disabled = true;
-    });
-    
-  showBoard();
+  fetch("/api/data/game?api-key=c4game", {
+    credentials: "same-origin",
+  }).catch(() => {
+    document.querySelector("#saveGame").disabled = true;
+    document.querySelector("#loadGame").disabled = true;
+  });
 });

@@ -3,11 +3,14 @@ div {
 }
 
 .board {
-  width: 84vw;
-  margin: auto;
-  outline: 1px solid black;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  padding: 10px;
+  background: #808080;
+  border-radius: 5px;
+  width: fit-content;
+  margin: 0 auto;
 }
 
 .board-inner {
@@ -25,6 +28,15 @@ div {
   cursor: pointer;
 }
 
+.field {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+}
+
 .board .field .piece {
   width: 10vw;
   height: 10vw;
@@ -33,18 +45,37 @@ div {
   transition: background-color 0.3s ease;
 }
 
+.piece {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+}
+
 .board .field .blue {
   background-color: blue;
+}
+
+.piece.blue {
+  background: blue;
 }
 
 .board .field .red {
   background-color: red;
 }
 
+.piece.red {
+  background: red;
+}
+
 .game-info {
   text-align: center;
   margin: 20px;
   font-family: Arial, sans-serif;
+  font-size: 1.2em;
+  margin: 10px 0;
 }
 
 .game-controls {
@@ -54,6 +85,7 @@ div {
   justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin: 20px 0;
 }
 
 .game-controls button {
@@ -77,4 +109,9 @@ button {
 
 button:hover {
   background-color: #45a049;
+}
+
+.container {
+  text-align: center;
+  padding: 20px;
 }
