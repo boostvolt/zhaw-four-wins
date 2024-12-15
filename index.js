@@ -1,8 +1,7 @@
 const express = require("express");
 const app = express();
-const port = 3000;
 
-// Add CORS middleware
+// CORS middleware
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -10,44 +9,39 @@ app.use((req, res, next) => {
     "Origin, X-Requested-With, Content-Type, Accept"
   );
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
+  next(req.method === "OPTIONS" ? null : undefined);
 });
 
 app.use(express.json());
 app.use(express.static("public"));
 
-let data = {
+// Initial game state
+const data = {
   game: {
     board: Array(6)
-      .fill("")
+      .fill()
       .map(() => Array(7).fill("")),
     currentPlayer: "r",
   },
 };
 
-// Add API endpoints
-app.get("/api/data/:key", (req, res) => {
+// API key validation middleware
+const validateApiKey = (req, res, next) => {
   if (req.query["api-key"] !== "c4game") {
     return res.status(401).json({ error: "Invalid API key" });
   }
+  next();
+};
+
+// API routes
+app.get("/api/data/:key", validateApiKey, (req, res) => {
   const gameData = data[req.params.key];
-  if (!gameData) {
-    return res.status(404).json({ error: "Game not found" });
-  }
-  res.json(gameData);
+  res.json(gameData ?? { error: "Game not found" });
 });
 
-app.put("/api/data/:key", (req, res) => {
-  if (req.query["api-key"] !== "c4game") {
-    return res.status(401).json({ error: "Invalid API key" });
-  }
+app.put("/api/data/:key", validateApiKey, (req, res) => {
   data[req.params.key] = req.body;
   res.json({ status: "ok" });
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+app.listen(3000, () => console.log("Server running on http://localhost:3000"));
