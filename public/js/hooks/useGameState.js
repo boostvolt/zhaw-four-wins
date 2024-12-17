@@ -22,13 +22,13 @@ export const useGameState = () => {
     setTimeout(() => {
       alert(`${winner} hat gewonnen!`);
       resetGame();
-    }, 500);
+    }, 500);  //does not rerender after winning but probably not necessary?
   };
 
   const makeMove = (col) => {
     if (state.gameOver) {
-      resetGame();
-      return;
+      resetGame(); //do we need this if anyway on handleGameOver we reset the game?
+      return;  
     }
 
     const row = getLowestEmptyRow(col);

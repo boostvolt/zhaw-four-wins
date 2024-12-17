@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch("/api/data/game?api-key=c4game", {
     credentials: "same-origin",
   }).catch(() => {
-    document.querySelector("#saveGame").disabled = true;
+    document.querySelector("#saveGame").disabled = true;  //disabled on purpose?
     document.querySelector("#loadGame").disabled = true;
   });
 });
