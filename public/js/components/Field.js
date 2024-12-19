@@ -1,4 +1,3 @@
-// components/Field.js
 export const Field = ({ type, col, onMove }) => {
   const props = {
     className: "field",
