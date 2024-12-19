@@ -40,3 +40,11 @@ npm run dev
 - The game is using state hooks
 
 # Screenshots
+Initial start of the game:
+![image](https://github.com/user-attachments/assets/b01e41ce-6aa3-4dcc-938f-bc17f334ebc7)
+
+After setting a few fields:
+![image](https://github.com/user-attachments/assets/bd128354-a9fd-425b-a460-03120db9e768)
+
+Once a player has won:
+![image](https://github.com/user-attachments/assets/68c88624-8ca9-4488-970a-788bc463b272)
