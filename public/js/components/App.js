@@ -30,12 +30,12 @@ export const App = () => {
       ],
       [
         "button",
-        { onclick: () => handleStorage("save", "server") },
+        { onclick: () => handleStorage("save", "server"), id: "saveServer" },
         "Server speichern",
       ],
       [
         "button",
-        { onclick: () => handleStorage("load", "server") },
+        { onclick: () => handleStorage("load", "server"), id: "loadServer" },
         "Server laden",
       ],
     ],

@@ -15,7 +15,7 @@ const storageOps = {
       if (!response.ok) throw new Error("Server save failed");
     },
     load: async () => {
-      const response = await fetch("/api/data/game?api-key=c4game", {  //where is the api-key c4game defined?
+      const response = await fetch("/api/data/game?api-key=c4game", { 
         credentials: "same-origin",
       });
       if (!response.ok) throw new Error("Server load failed");
